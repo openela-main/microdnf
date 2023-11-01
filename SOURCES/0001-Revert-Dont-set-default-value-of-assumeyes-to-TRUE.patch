@@ -1,0 +1,41 @@
+From f60d1b6930b4602a24ae2ce4078795268384c87d Mon Sep 17 00:00:00 2001
+From: Pavla Kratochvilova <pkratoch@redhat.com>
+Date: Thu, 20 May 2021 11:06:27 +0200
+Subject: [PATCH] Revert "Don't set default value of "assumeyes" to TRUE"
+
+This reverts commit 9e028a51fea6eceee0de6e155374a0bd81289e14.
+---
+ dnf/dnf-main.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/dnf/dnf-main.c b/dnf/dnf-main.c
+index 661dfee..cfaf714 100644
+--- a/dnf/dnf-main.c
++++ b/dnf/dnf-main.c
+@@ -595,6 +595,14 @@ main (int   argc,
+         {
+           dnf_conf_main_set_option ("assumeyes", DNF_CONF_COMMANDLINE, "1", NULL);
+         }
++      else
++        {
++          enum DnfConfPriority priority;
++          dnf_utils_conf_main_get_bool_opt ("assumeyes", &priority);
++          /* microdnf has a default value for "assumeyes" equal to TRUE, backward compatibility */
++          if (priority == DNF_CONF_DEFAULT)
++            dnf_conf_main_set_option ("assumeyes", DNF_CONF_COMMANDLINE, "1", NULL);
++        }
+     }
+ 
+   const gchar *cmd_name = get_command (&argc, argv);
+@@ -609,6 +617,8 @@ main (int   argc,
+       g_set_prgname (prg_name);
+       g_autofree gchar *help = g_option_context_get_help (opt_ctx, TRUE, NULL);
+       g_print ("%s", help);
++      g_print ("Notes:\n");
++      g_print ("  The \"--assumeyes\" option is turned on by default. To switch it to an interactive prompt, specify \"assumeyes=0\" in the configuration file.\n\n");
+       goto out;
+     }
+ 
+--
+libgit2 1.0.1
+
